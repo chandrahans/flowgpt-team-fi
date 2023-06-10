@@ -35,13 +35,14 @@ class PriceType(Enum):
 class Query():
     @classmethod
     def from_json(cls, params):
+        if params["Instrument"] == "Unspecified":
+            return None
+
         quote = Quote.BOTH
         if params["Quote"] == "Bid":
             quote = Quote.BID
-        elif params["Quote"] == "Ask" or params["Quote"] == "Offer":
+        elif params["Quote"] == "Ask":
             quote = Quote.ASK
-        elif params["Quote"] == "Swap":
-            quote = Quote.SWAP
 
         price_type = PriceType.SPOT
         if params["PriceType"] == "NAV":
@@ -80,7 +81,8 @@ class Query():
 
 
 class QueryHandler:
-    def __init__(self, config) -> None:
+    def __init__(self, config, verbose: bool = False) -> None:
+        self.verbose = verbose
         openai.api_key = config['OPENAI-4']['api-key']
 
     def parse(self, raw_query: str) -> Query:
@@ -97,7 +99,7 @@ class QueryHandler:
                 it usually means they are looking for Both Bid and Ask on that instrument.\
                 The denomination for the query is usually the instrument itself, but sometimes the query could \
                 specify a currency as well. Typically, the denomination currencies could be are USD($), EUR(€), GBP(£) etc.\
-                Respond in JSON format with Instrument, Denomination, PriceType, Quantity and Quote as keys,\
+                Respond in a strict JSON format with Instrument, Denomination, PriceType, Quantity and Quote as keys,\
                 with following constraints on possible values:\n\
                 \t PriceType: NAV, SPOT, TWAP, VWAP and Unspecified\n\
                 \t Quote: Bid, Ask, Both, and Unspecified.\n\
@@ -108,8 +110,16 @@ class QueryHandler:
             model="gpt-4",
             messages=messages,
             temperature=0)
-        print(f'Model response: {response.choices[0].message["content"]}')
-        return Query.from_json(json.loads(response.choices[0].message["content"]))
+
+        if self.verbose:
+            print(f'Model response: {response.choices[0].message["content"]}')
+        try:
+            return Query.from_json(json.loads(response.choices[0].message["content"]))
+        except Exception as e:
+            if self.verbose:
+                print(
+                    f"Exception {e} occured while handling the query: {raw_query}")
+            return None
 
 
 def _main():

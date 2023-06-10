@@ -4,104 +4,129 @@ from pickle import NONE
 import openai
 from enum import Enum
 import json
-import requests
 
-API_KEY = "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"
-openai.api_key = API_KEY
-
-
-def fine_tune_model(prompt, dataset, model_engine="davinci", num_epochs=3, batch_size=4):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai.api_key}",
-    }
-
-    data = {"model": f"{model_engine}-0",
-            "dataset": dataset,
-            "prompt": prompt,
-            "num_epochs": num_epochs,
-            "batch_size": batch_size
-            }
-
-    url = "https://api.openai.com/v1/fine-tunes"
-    response = requests.post(url, headers=headers, json=data)
-
-    if response.status_code != 200:
-        raise ValueError("Failed to fine-tune the model.")
-
-    model_id = response.json()["model_id"]
-    return model_id
+API_KEY = os.getenv("OPENAI_API_KEY")
+API_4_KEY = os.getenv("OPENAI_4_API_KEY")
 
 
-class Side(Enum):
-    BUY = 1,
-    SELL = 2,
-    BOTH = 3
+class Quote(Enum):
+    BID = 1,
+    ASK = 2,
+    BOTH = 3,
+    SWAP = 4
 
 
-class Type(Enum):
-    CASH = 1,
-    NAV = 2
+class Denomination(Enum):
+    INSTRUMENT = 1,
+    USD = 2,
+    EUR = 3,
+    GBP = 4
+
+
+class PriceType(Enum):
+    SPOT = 1,
+    NAV = 2,
+    TWAP = 3,
+    VWAP = 4
 
 
 class Query():
     @classmethod
     def from_json(cls, params):
-        side = Side.BOTH
-        if params["Action"] == "Buy":
-            side = Side.BUY
-        elif params["Action"] == "Sell" or params["Action"] == "Offer":
-            side = Side.SELL
+        quote = Quote.BOTH
+        if params["Quote"] == "Bid":
+            quote = Quote.BID
+        elif params["Quote"] == "Ask" or params["Quote"] == "Offer":
+            quote = Quote.ASK
+        elif params["Quote"] == "Swap":
+            quote = Quote.SWAP
 
-        type = Type.NAV if params["Type"] == "NAV" else Type.CASH
-        return cls(params["Instrument"], params["Quantity"], side, type)
+        price_type = PriceType.SPOT
+        if params["PriceType"] == "NAV":
+            price_type = PriceType.NAV
+        elif params["PriceType"] == "TWAP":
+            price_type = PriceType.TWAP
+        elif params["PriceType"] == "VWAP":
+            price_type = PriceType.VWAP
+
+        denomination = Denomination.INSTRUMENT
+        if params["Denomination"] == "USD":
+            denomination = Denomination.USD
+        elif params["Denomination"] == "EUR":
+            denomination = Denomination.EUR
+        elif params["Denomination"] == "GBP":
+            denomination = Denomination.GBP
+
+        return cls(params["Instrument"], params["Quantity"], denomination, quote, price_type)
 
     def __init__(
         self,
         instrument: str,
-        quantity: int,
-        side: Side = Side.BOTH,
-        type: Type = Type.CASH
+        quantity: float,
+        denomination: Denomination = Denomination.INSTRUMENT,
+        quote: Quote = Quote.BOTH,
+        price_type: PriceType = PriceType.SPOT
     ):
         self.instrument = instrument
         self.quantity = quantity
-        self.side = side
-        self.type = type
+        self.denomination = denomination
+        self.quote = quote
+        self.price_type = price_type
 
     def __repr__(self) -> str:
-        return f'Instrument: {self.instrument}, Quantity: {self.quantity}, Side: {self.side}, Type: {self.type}'
+        return f'Instrument: {self.instrument}, Quantity: {self.quantity}, Denomination: {self.denomination} Quote: {self.quote}, PriceType: {self.price_type}'
 
 
-def get_proper_query(query, model="gpt-3.5-turbo") -> Query:
-    content = f'We received query from a client intending to make a trade in a financial instrument.\
-                The instument could either be of NAV or Cash type.\
-                The client might want to buy, sell or do both for the financial instrument.\
-                The client might also be using slang terms typically used in the trading community. \
-                For example bidding usually means buying, offering means selling etc.\
-                It might be worthwhile to look up Investopedia for the tarding slang and jargon.\
+def get_proper_query(query, api_key=API_KEY, model="gpt-3.5-turbo") -> Query:
+    openai.api_key = api_key
+    content = f'We received a query from a client intending to make a trade in a financial instrument.\
+                The client might be looking for a Bid, Ask (Offer) or Both for the financial instrument.\
                 Your task is to extract the details of the tarding intention, namely, the financial instrument specified, \
-                whether they want to buy or sell, and the required quantity \
+                whether they are looking for a Bid or Offer or Both, and the required Quantity \
                 from the query inside triple quotes: """{query}""".\
-                Respond in JSON format with Instrument, Type, Quantity and Action as keys,\
-                where the Type is an enumeration among NAV, Cash and Unspecified,\
-                and the Action is an enumeration among Buy, Sell, Both and Unspecified'
+                The client might be looking for a price against (or interms of) NAV, TWAP or VWAP.\
+                If the client wants to buy an instrument, they are looking for an offer on that instrument.\
+                Similarly, if the client wants to sell, they are looking for a bid on that instrument.\
+                Also, if the client wants to swap some amount of A to B, they are looking for a Bid on the instrument A/B.\
+                The client might also be using trading slang. For example, if the query mentions 2w or 2way quote, \
+                it usually means they are looking for Both Bid and Ask on that instrument.\
+                The denomination for the query is usually the instrument itself, but sometimes the query could \
+                specify a currency as well. Typically, the denomination currencies could be are USD($), EUR(€), GBP(£) etc.\
+                Respond in JSON format with Instrument, Denomination, PriceType, Quantity and Quote as keys,\
+                with following constraints on possible values:\n\
+                \t PriceType: NAV, SPOT, TWAP, VWAP and Unspecified\n\
+                \t Quote: Bid, Ask, Both, and Unspecified.\n\
+                \t Denomination: USD, EUR, GBP, and Unspecified'
 
     messages = [{"role": "user", "content": content}]
     response = openai.ChatCompletion.create(
         model=model,
         messages=messages,
-        temperature=0,
-        timeout=10
-    )
-    print(f'Response from the model: {response.choices[0].message["content"]}')
+        temperature=0)
+    print(f'Model response: {response.choices[0].message["content"]}')
     return Query.from_json(json.loads(response.choices[0].message["content"]))
 
 
-def _main():
-    request = "Can i have a 2way in 10,000,000$ BTC"
-    query = get_proper_query(request)
-    print(query)
+async def _main():
+    raw_querries = [
+        "2w 500 BTC",
+        "Can I have an offer in 10 BTC",
+        "Id like to buy 20 BTC",
+        "NAV 2w 20 BTCE GY todays NAV settlement t+2",
+        "Can i have a 2way in 10,000,000$ BTC",
+        "Can i have 2w 10000 BTC against 1d twap",
+        "What can you show 2w 10000 BTC against 1d vwap",
+        "I would like to swap 1,000,000 $ BTC to ETH",
+        "I wanna sell 1,000,000 € BTC",
+        "Can I get a quote please, I want to sell 1,000,000 Pounds worth of BTC",
+    ]
+
+    for r in raw_querries:
+        print(f"Raw query: {r}")
+        query = get_proper_query(r, api_key=API_4_KEY, model="gpt-4")
+        print(f"Formatted query: {query}")
+        await asyncio.sleep(5)
 
 
 if __name__ == "__main__":
-    _main()
+    asyncio.get_event_loop().run_until_complete(_main())

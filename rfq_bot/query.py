@@ -1,9 +1,11 @@
 import asyncio
 import os
-from pickle import NONE
+import time
 import openai
 from enum import Enum
 import json
+import configparser
+import sys
 
 API_KEY = os.getenv("OPENAI_API_KEY")
 API_4_KEY = os.getenv("OPENAI_4_API_KEY")
@@ -77,13 +79,16 @@ class Query():
         return f'Instrument: {self.instrument}, Quantity: {self.quantity}, Denomination: {self.denomination} Quote: {self.quote}, PriceType: {self.price_type}'
 
 
-def get_proper_query(query, api_key=API_KEY, model="gpt-3.5-turbo") -> Query:
-    openai.api_key = api_key
-    content = f'We received a query from a client intending to make a trade in a financial instrument.\
+class QueryHandler:
+    def __init__(self, config) -> None:
+        openai.api_key = config['OPENAI-4']['api-key']
+
+    def parse(self, raw_query: str) -> Query:
+        content = f'We received a query from a client intending to make a trade in a financial instrument.\
                 The client might be looking for a Bid, Ask (Offer) or Both for the financial instrument.\
                 Your task is to extract the details of the tarding intention, namely, the financial instrument specified, \
                 whether they are looking for a Bid or Offer or Both, and the required Quantity \
-                from the query inside triple quotes: """{query}""".\
+                from the query inside triple quotes: """{raw_query}""".\
                 The client might be looking for a price against (or interms of) NAV, TWAP or VWAP.\
                 If the client wants to buy an instrument, they are looking for an offer on that instrument.\
                 Similarly, if the client wants to sell, they are looking for a bid on that instrument.\
@@ -98,16 +103,16 @@ def get_proper_query(query, api_key=API_KEY, model="gpt-3.5-turbo") -> Query:
                 \t Quote: Bid, Ask, Both, and Unspecified.\n\
                 \t Denomination: USD, EUR, GBP, and Unspecified'
 
-    messages = [{"role": "user", "content": content}]
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        temperature=0)
-    print(f'Model response: {response.choices[0].message["content"]}')
-    return Query.from_json(json.loads(response.choices[0].message["content"]))
+        messages = [{"role": "user", "content": content}]
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=messages,
+            temperature=0)
+        print(f'Model response: {response.choices[0].message["content"]}')
+        return Query.from_json(json.loads(response.choices[0].message["content"]))
 
 
-async def _main():
+def _main():
     raw_querries = [
         "2w 500 BTC",
         "Can I have an offer in 10 BTC",
@@ -121,12 +126,16 @@ async def _main():
         "Can I get a quote please, I want to sell 1,000,000 Pounds worth of BTC",
     ]
 
+    config = configparser.ConfigParser()
+    config.read(sys.argv[1])
+    query_handler = QueryHandler(config)
+
     for r in raw_querries:
         print(f"Raw query: {r}")
-        query = get_proper_query(r, api_key=API_4_KEY, model="gpt-4")
+        query = query_handler.parse(r)
         print(f"Formatted query: {query}")
-        await asyncio.sleep(5)
+        time.sleep(5)
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(_main())
+    _main()

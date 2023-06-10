@@ -11,7 +11,8 @@
 # hedging costs (add x bps) to spread/configurable V
 # current position
 # output one skew for buy, one skew for sell
-
+maximum_bid_skew = 2.5
+maximum_ask_skew = 2.5
 neutral_counterparty_multiplier = 1
 toxic_counterparty_multiplier = 1.5
 good_counterparty_multiplier = 0.5
@@ -71,7 +72,9 @@ class SkewCalculator:
     
         self.two_sided_multiplier = self.counterparty_multiplier*self.market_conditions*self.order_value_multiplier*self.sides_multiplier
         self.bid_skew = self.two_sided_multiplier*self.sentiment_multiplier[0]*self.position_multiplier[0]
+        self.bid_skew = min(maximum_bid_skew,self.bid_skew)
         self.ask_skew = self.two_sided_multiplier*self.sentiment_multiplier[1]*self.position_multiplier[1]
+        self.ask_skew = min(maximum_ask_skew,self.ask_skew)
 
     def get_bid_skew(self):
         return self.bid_skew

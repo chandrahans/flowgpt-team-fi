@@ -17,7 +17,7 @@ class TheoreticalPriceHandler:
         response = requests.get(url, headers=headers)
         data = response.json()
         if data['chart']['result'] is None:
-         print(f"No data found for {self._ticker}")
-         return 
+            print(f"No data found for {self._ticker}")
+            return 
         price = data['chart']['result'][0]['meta']['regularMarketPrice']
         return price

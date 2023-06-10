@@ -21,7 +21,7 @@ def main() -> None:
     config = configparser.ConfigParser()
     config.read(sys.argv[1])  # read the .ini file path from the first command line argument
 
-    engine = SentimentEngine(config)
+    engine = SentimentEngine(config, ['BTCUSD', 'AAPL'])
 
     telegram_echo(config)
 

@@ -3,6 +3,7 @@ import sys
 
 from message_connectivity.telegram_bot import TelegramBot
 from message_connectivity.bot_base import BotBase
+from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
 
 
 class EchoReceiver:
@@ -19,6 +20,8 @@ def telegram_echo(config):
 def main() -> None:
     config = configparser.ConfigParser()
     config.read(sys.argv[1])  # read the .ini file path from the first command line argument
+
+    engine = SentimentEngine(config)
 
     telegram_echo(config)
 

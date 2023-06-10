@@ -1,11 +1,11 @@
 from telegram.ext import MessageHandler, filters, Application
-from message_connectivity.bot_base import BotBase
+from rfq_bot.message_connectivity.bot_base import BotBase
 
 
 class TelegramBot(BotBase):
     def __init__(self, config):
         self.application = Application.builder().token(config['TELEGRAM']['api-key']).build()
-        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.receive_message))
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._receive_message))
         self.listeners = []
 
     def start(self):
@@ -14,13 +14,13 @@ class TelegramBot(BotBase):
     async def send_message(self, chat_id, text):
         await self.application.bot.send_message(chat_id, text)
 
-    async def receive_message(self, update, context):
+    # Listener should have method async def on_message_received(self, bot: BotBase, message, chat_id):
+    def register_listener(self, listener):
+        self.listeners.append(listener)
+
+    async def _receive_message(self, update, context):
         chat_id = update.message.chat_id
         text = update.message.text
         print(f"Received message: {text} from chat id: {chat_id}")
         for listener in self.listeners:
             await listener.on_message_received(self, text, chat_id)
-
-    # Listener should have method async def on_message_received(self, bot: BotBase, message, chat_id):
-    def register_listener(self, listener):
-        self.listeners.append(listener)

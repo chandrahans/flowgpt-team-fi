@@ -1,14 +1,14 @@
 import configparser
 import random
 import sys
-from rfq_bot.query import Query, QueryHandler
+from rfq_bot.query import QueryHandler
 
 from pricing_engine.pricing_engine import PricingEngine
 from rfq_bot.message_connectivity.telegram_bot import TelegramBot
 from rfq_bot.message_connectivity.bot_base import BotBase
 from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
 
-ERROR_MSG = "Could not understand that request, maybe you missed the quantity? Please try again!\n\
+ERROR_MSG = "Could not understand that request, maybe you entered incorrect quantity? Please try again!\n\
 Try for example: '2w 500 BTC', 'I wanna buy 10 ETH', 'Can I have an offer on 10 BTC and 20 ETH' etc."
 
 def get_random_message():
@@ -17,7 +17,7 @@ def get_random_message():
                    "Getting you the best prices,",
                    "One sec,"])
 
-class QueryRepeater:
+class TradingClientHandler:
     def __init__(self, config) -> None:
         self.verbose = True if config['COMMON']['verbose'] == "True" else False
         self.query_handler = QueryHandler(config)
@@ -39,7 +39,7 @@ def main() -> None:
 
     engine = SentimentEngine(config, ['BTCUSD', 'AAPL'])
     telegram_bot: BotBase = TelegramBot(config)
-    telegram_bot.register_listener(QueryRepeater(config))
+    telegram_bot.register_listener(TradingClientHandler(config))
 
     for _ in range(5):
         try:

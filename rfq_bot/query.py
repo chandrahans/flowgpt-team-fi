@@ -28,7 +28,7 @@ class PriceType(Enum):
 class Query():
     @classmethod
     def from_json(cls, params):
-        if params["Instrument"] == "Unspecified" or params["Quantity"] == "Unspecified":
+        if params["Instrument"] == "Unspecified" or not str(params["Quantity"]).replace(".", "").isnumeric():
             return None
 
         quote = Quote.BOTH
@@ -121,6 +121,7 @@ class QueryHandler:
                 temperature=0)
         except Exception as e:
             print(f"Exception {e} occured while making a completion request to openai: {raw_query}")
+            return None
 
         self.verbose and print(f'Model response: {response.choices[0].message["content"]}')
 

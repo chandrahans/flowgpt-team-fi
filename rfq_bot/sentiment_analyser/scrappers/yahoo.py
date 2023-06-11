@@ -10,6 +10,7 @@ from rfq_bot.sentiment_analyser.analysers.ticker_sentiment import TickerSentimen
 class Yahoo(ScrapperBase):
     def __init__(self, config, sentiment_engine):
         ScrapperBase.__init__(self, config, sentiment_engine)
+        self.verbose = True if config['COMMON']['verbose'] == "True" else False
         self.analyser = TickerSentimentAnalyser(config)
 
     def run(self):
@@ -18,16 +19,16 @@ class Yahoo(ScrapperBase):
         while True:
             # Send HTTP request to the specified URL and save the response from server in a response object called r
             r = requests.get(url)
-            print(r)
+            self.verbose and print(r)
 
             # Create a BeautifulSoup object and specify the parser
             soup = BeautifulSoup(r.text, 'html.parser')
 
             for news in soup.find_all('div', attrs={'class': 'Cf'}):
                 headline = news.find('h3').find('span').text
-                print(headline)
+                self.verbose and print(headline)
                 description = news.find('p').text
-                print(description)
+                self.verbose and print(description)
                 result = self.analyser.analyse_text(headline + '/n' + description)
                 if result is not None:
                     for item in result:

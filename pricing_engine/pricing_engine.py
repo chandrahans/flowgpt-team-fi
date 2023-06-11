@@ -70,7 +70,7 @@ class PricingEngine:
             print("bid: " + str(self.bid_price) + " ask: "+ str(self.ask_price))
 
         if quote_type == "NAV":
-            print("NAV: -"+str(bid_price_skew_bps) + "bps, NAV " + str(ask_price_skew_bps)+"bps")
+            print("NAV -" + str(self.bid_price_skew_bps) + "bps, NAV +" + str(self.ask_price_skew_bps)+"bps")
 
     def calculate_bid_price(self, theo, bid_skew, bid_ask_price_spread):
         bid_price = theo - bid_skew*bid_ask_price_spread
@@ -88,14 +88,14 @@ class PricingEngine:
         self.ask_price_skew_bps = round((ask_price-theo)/theo*CONST_TEN_THOUSAND,2)
         return self.ask_price_skew_bps
 
-    def get_bid_price(x):
+    def get_bid_price(self, x):
         return self.bid_price
 
-    def get_ask_price(x):
+    def get_ask_price(self, x):
         return self.ask_price
 
-    def get_bid_price_skew_bps(x):
+    def get_bid_price_skew_bps(self, x):
         return self.bid_price_skew_bps
 
-    def get_ask_price_skew_bps(x):
+    def get_ask_price_skew_bps(self, x):
         return self.ask_price_skew_bps

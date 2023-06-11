@@ -14,7 +14,7 @@ Try for example: '2w 500 BTC', 'I wanna buy 10 ETH', 'Can I have an offer on 10 
 def get_random_message():
     return random.choice(["Hold on! I'm pricing it,", 
                    "Give me a sec,", 
-                   "Getting you the best prices,"
+                   "Getting you the best prices,",
                    "One sec,"])
 
 class QueryRepeater:

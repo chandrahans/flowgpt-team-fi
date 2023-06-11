@@ -52,11 +52,11 @@ class PricingEngine:
 
     def __init__(self,query,ticker="AAPL",quantity=1,side="BUY",quote_type="RISK",sentiment=1,counterparty='unknown'):
 
-        ticker = query[0].instrument
-        quantity = query[0].quantity
-        denomination = resolve_denomination(query[0].denomination)
-        side = resolve_side(query[0].quote)
-        quote_type = resolve_quote_type(query[0].price_type)
+        ticker = query.instrument
+        quantity = query.quantity
+        denomination = resolve_denomination(query.denomination)
+        side = resolve_side(query.quote)
+        quote_type = resolve_quote_type(query.price_type)
         self.cpty_side = side
         self.quote_type = quote_type
       

@@ -25,9 +25,11 @@ class QueryRepeater:
     async def on_message_received(self, bot: BotBase, message, chat_id, first_name):
         await bot.send_message(chat_id, get_random_message() + f" {first_name}!")
         formatted_query: list = self.query_handler.parse(message)
+        if not formatted_query:
+            await bot.send_message(chat_id, ERROR_MSG)
         for listing_query in formatted_query:
             if formatted_query is not None:
-                await bot.send_message(chat_id, str(PricingEngine(formatted_query)))
+                await bot.send_message(chat_id, str(PricingEngine(listing_query)))
             else:
                 await bot.send_message(chat_id, ERROR_MSG)
 

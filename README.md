@@ -29,6 +29,9 @@ api-key = Your-OpenAI-API-Key
 
 [OPENAI-4]
 api-key = Your-OpenAI-4-API-Key
+
+[COMMON]
+verbose = False
 ```
 
 Please replace `Your-Telegram-API-Key`, `Your-OpenAI-API-Key` and `Your-OpenAI-4-API-Key` with your actual keys. Save this configuration file as `configuration.ini`.

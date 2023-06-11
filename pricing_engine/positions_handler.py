@@ -40,10 +40,11 @@ class PositionsHandler:
         ticker_quantity = self.current_positions[ticker]
         position_limit = self.default_position_limit
         if ticker not in self.positions_limits:
-            position_limit = self.default_position_limit 
-        position_limit = self.positions_limits[ticker]
+            position_limit = self.default_position_limit
+        else:
+            position_limit = self.positions_limits[ticker]
         if position_limit == 0 or abs(ticker_quantity)>=position_limit:
             position_limit_ratio = 1
         else:
-            position_limit_ratio = ticker_quantity/self.positions_limits[ticker]
+            position_limit_ratio = ticker_quantity/position_limit
         return position_limit_ratio

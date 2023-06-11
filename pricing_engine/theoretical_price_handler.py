@@ -14,7 +14,11 @@ class TheoreticalPriceHandler:
         headers = {
          self._user_agent_key: self._user_agent_value
         }
-        response = requests.get(url, headers=headers)
+        try:
+            response = requests.get(url, headers=headers)
+        except:
+            print(f"Could not complete API request for {self._ticker}")
+            return None
         if response.status_code != requests.codes.ok:
             print(f"No data found for {self._ticker}")
             return None

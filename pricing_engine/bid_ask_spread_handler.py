@@ -14,21 +14,30 @@ class BidAskSpreadHandler:
         headers = {
             self._user_agent_key: self._user_agent_value
         }
-        response = requests.get(url, headers=headers)
+        
+        try:
+            response = requests.get(url, headers=headers)
+        except:
+            print(f"Could not complete API request for {self._ticker}")
+            return None
+
+        if response.status_code != requests.codes.ok:
+            print(f"No data found for {self._ticker}")
+            return None
         data = response.json()
         if not data['quoteSummary']['result']:
             print(f"Security not available {self._ticker}!")
-            return 
+            return None
         ask_dict = data['quoteSummary']['result'][0]['summaryDetail']['ask']
         bid_dict = data['quoteSummary']['result'][0]['summaryDetail']['bid']
         if not ask_dict or not bid_dict:
             print("Could not find bid and ask prices.")
-            return 
+            return None 
         ask_price = ask_dict['raw']
         bid_price = bid_dict['raw']
         if bid_price == 0 or ask_price == 0:
             print("One of the bid/ask prices is zero")
-            return 
+            return None 
         if ask_price <= bid_price:
             print("Sommething went wrong with the prices")
         self.bid_ask_spread = ask_price - bid_price

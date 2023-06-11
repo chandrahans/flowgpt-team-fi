@@ -8,6 +8,9 @@ from pricing_engine.skew_handler import SkewCalculator
 from pricing_engine.theoretical_price_handler import TheoreticalPriceHandler
 from pricing_engine.yahoo_ticker_resolver import YahooTickerResolver 
 from rfq_bot.query import Query, Quote, Denomination, PriceType
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 DEFAULT_SPREAD_BPS = 100
 CONST_TEN_THOUSAND = 10000
@@ -51,7 +54,6 @@ def resolve_quote_type(price_type):
 class PricingEngine:
 
     def __init__(self,query,ticker="AAPL",quantity=1,side="BUY",quote_type="RISK",sentiment=1,counterparty='unknown'):
-
         ticker = query.instrument
         quantity = query.quantity
         denomination = resolve_denomination(query.denomination)

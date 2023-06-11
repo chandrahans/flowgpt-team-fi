@@ -1,10 +1,14 @@
 import configparser
 import sys
+import os
 from query import Query, QueryHandler
 
 from message_connectivity.telegram_bot import TelegramBot
 from message_connectivity.bot_base import BotBase
-from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
+from sentiment_analyser.sentiment_engine import SentimentEngine
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.abspath(os.path.join(dir_path, os.pardir)))
 
 
 class EchoReceiver:

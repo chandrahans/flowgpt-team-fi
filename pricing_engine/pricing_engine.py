@@ -119,18 +119,18 @@ class PricingEngine:
         
         if self.quote_type == "RISK":
             if self.cpty_side == "BUY":
-                self.final_output = f"offer: {self.ask_price}"
+                self.final_output = f"{ticker} Offer: {self.ask_price}"
             elif self.cpty_side == "SELL":
-                self.final_output = f"bid: {self.bid_price}"
+                self.final_output = f"{ticker} Bid: {self.bid_price}"
             elif self.cpty_side == "TWO_WAY":
-                self.final_output = f"bid: {self.bid_price}, offer {self.ask_price}"
+                self.final_output = f"{ticker} Bid: {self.bid_price}, Offer {self.ask_price}"
         else:
             if self.cpty_side == "BUY":
-                self.final_output = f"offer: +{self.ask_price_skew_bps} bps"
+                self.final_output = f"{ticker} Offer: +{self.ask_price_skew_bps} bps"
             elif self.cpty_side == "SELL":
-                self.final_output = f"bid: {self.quote_type} - {self.bid_price_skew_bps} bps"
+                self.final_output = f"{ticker} Bid: {self.quote_type} - {self.bid_price_skew_bps} bps"
             elif self.cpty_side == "TWO_WAY":
-                self.final_output = f"bid: {self.quote_type} - {self.bid_price_skew_bps} bps, offer {self.quote_type} +{self.ask_price_skew_bps} bps"
+                self.final_output = f"{ticker} Bid: {self.quote_type} - {self.bid_price_skew_bps} bps, Offer {self.quote_type} +{self.ask_price_skew_bps} bps"
 
     def calculate_bid_price(self, theo, bid_skew, bid_ask_price_spread):
         bid_price = theo - bid_skew*bid_ask_price_spread

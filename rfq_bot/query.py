@@ -28,7 +28,7 @@ class PriceType(Enum):
 class Query():
     @classmethod
     def from_json(cls, params):
-        if params["Instrument"] == "Unspecified":
+        if params["Instrument"] == "Unspecified" or params["Quantity"] == "Unspecified":
             return None
 
         quote = Quote.BOTH

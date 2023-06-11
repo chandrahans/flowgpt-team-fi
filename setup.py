@@ -8,6 +8,7 @@ setup(
         'python-telegram-bot',
         'beautifulsoup4',
         'requests',
-        'openai'
+        'openai',
+        'pandas'
     ]
 )

@@ -15,9 +15,12 @@ class TheoreticalPriceHandler:
          self._user_agent_key: self._user_agent_value
         }
         response = requests.get(url, headers=headers)
+        if response.status_code != requests.codes.ok:
+            print(f"No data found for {self._ticker}")
+            return None
         data = response.json()
         if data['chart']['result'] is None:
             print(f"No data found for {self._ticker}")
-            return 
+            return None
         price = data['chart']['result'][0]['meta']['regularMarketPrice']
         return price

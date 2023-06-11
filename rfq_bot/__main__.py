@@ -48,7 +48,6 @@ def main() -> None:
         except Exception as e:
             print(
                 f"An exception ({e}) occured during runtime, restarting the bot server...")
-            engine.stop()
             telegram_bot.application.stop()
 
 

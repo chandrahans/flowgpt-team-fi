@@ -74,8 +74,8 @@ class Query():
 
 
 class QueryHandler:
-    def __init__(self, config, verbose: bool = False) -> None:
-        self.verbose = verbose
+    def __init__(self, config) -> None:
+        self.verbose = True if config['COMMON']['verbose'] == "True" else False
         openai.api_key = config['OPENAI-4']['api-key']
 
     def try_json_extraction(self, response: str):

@@ -11,8 +11,8 @@ from rfq_bot.sentiment_analyser.analysers.sentiment import SentimentAnalyser
 
 
 class YahooSearch(ScrapperBase):
-    def __init__(self, config, sentiment_engine, ticker_list, verbose=False):
-        self.verbose = verbose
+    def __init__(self, config, sentiment_engine, ticker_list):
+        self.verbose = True if config['COMMON']['verbose'] == "True" else False
         ScrapperBase.__init__(self, config, sentiment_engine)
         self.analyser = SentimentAnalyser(config)
         self.ticker_list = ticker_list

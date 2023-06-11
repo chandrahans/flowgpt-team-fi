@@ -8,14 +8,14 @@ from rfq_bot.sentiment_analyser.scrappers.yahoo_search import YahooSearch
 DEFAULT_SENTIMENT = 5
 
 class SentimentEngine:
-    def __init__(self, config, ticker_list, verbose=False):
-        self.verbose = verbose
+    def __init__(self, config, ticker_list):
+        self.verbose = True if config['COMMON']['verbose'] == "True" else False
         self.score_lock = threading.Lock()
         self.ticker_scores = {ticker: DEFAULT_SENTIMENT for ticker in ticker_list}
 
         self.scrappers = [
             # Yahoo(config, self),
-            YahooSearch(config, self, ticker_list, self.verbose),
+            YahooSearch(config, self, ticker_list),
             # ScrapperTest(config, self),
         ]
 
@@ -31,3 +31,8 @@ class SentimentEngine:
     def get_ticker_score(self, ticker):
         with self.score_lock:
             return self.ticker_scores[ticker]
+
+    def stop(self):
+        with self.score_lock:
+            for scrapper in self.scrappers:
+                scrapper.join()

@@ -1,33 +1,84 @@
-from bid_ask_spread_handler import BidAskSpreadHandler
-from currency_rate_converter import CurrencyRateConverter
-from market_volatility_monitor import MarketVolatilityMonitor
-from positions_handler import PositionsHandler
-from skew_handler import SkewCalculator
-from theoretical_price_handler import TheoreticalPriceHandler
-from yahoo_ticker_resolver import YahooTickerResolver 
+from enum import Enum
+import math
+from pricing_engine.bid_ask_spread_handler import BidAskSpreadHandler
+from pricing_engine.currency_rate_converter import CurrencyRateConverter
+from pricing_engine.market_volatility_monitor import MarketVolatilityMonitor
+from pricing_engine.positions_handler import PositionsHandler
+from pricing_engine.skew_handler import SkewCalculator
+from pricing_engine.theoretical_price_handler import TheoreticalPriceHandler
+from pricing_engine.yahoo_ticker_resolver import YahooTickerResolver 
+from rfq_bot.query import Query, Quote, Denomination, PriceType
 
 DEFAULT_SPREAD_BPS = 100
 CONST_TEN_THOUSAND = 10000
-
-# RFQ data should come here with ticker, sides, and quantity
-# and quoteType (it can be RISK or NAV)
-
-one_sided_quote_sides_list = ['buy','sell']
-two_sided_quote_sides_list = ['two_way']
 
 one_sided_quote_sides_list = ['buy','sell']
 two_sided_quote_sides_list = ['two_way']
 
 positions_handler = PositionsHandler()
+
+def resolve_denomination(denomination):
+    if denomination.value == Denomination.INSTRUMENT.value:
+        return "instrument"
+    if denomination.value == Denomination.USD.value:
+        return "USD"
+    if denomination.value == Denomination.EUR.value:
+        return "EUR"
+    if denomination.value == Denomination.GBP.value:
+        return "GBP"
+
+def resolve_side(quote): 
+    cpty_side = "TWO_WAY"
+    if quote.value ==  Quote.BID.value:
+       cpty_side = "SELL"
+    elif quote.value ==  Quote.ASK.value:
+       cpty_side = "BUY"
+    elif quote.value == quote.BOTH.value:
+       cpty_side = "TWO_WAY" 
+    return cpty_side
+
+def resolve_quote_type(price_type):
+    if price_type.value == PriceType.SPOT.value:
+        price_type = "RISK"
+    elif price_type.value == PriceType.NAV.value:
+        price_type = "NAV"
+    elif price_type.value == PriceType.TWAP.value:
+        price_type = "TWAP"
+    elif price_type.value == PriceType.VWAP.value:
+       price_type = "VWAP"
+    return price_type
+     
 class PricingEngine:
 
-    def __init__(self,ticker,quantity,side,quote_type,sentiment=1,counterparty='unknown'):
+    def __init__(self,query,ticker="AAPL",quantity=1,side="BUY",quote_type="RISK",sentiment=1,counterparty='unknown'):
+
+        ticker = query[0].instrument
+        quantity = query[0].quantity
+        denomination = resolve_denomination(query[0].denomination)
+        side = resolve_side(query[0].quote)
+        quote_type = resolve_quote_type(query[0].price_type)
+        self.cpty_side = side
+        self.quote_type = quote_type
+      
         ticker = YahooTickerResolver(ticker).retrieve_yahoo_ticker() 
         theo = TheoreticalPriceHandler(ticker).theo_price
-        print(theo)
         if theo is None:
             print(f"Unable to retrieve a theo price for {ticker}.")
             return
+        if denomination == "USD":
+           quantity = math.floor(quantity/theo)
+
+        if denomination == "EUR":
+           currency_rate_converter = CurrencyRateConverter(from_currency='EUR',
+                                                        to_currency='USD')
+           exchange_rate = currency_rate_converter.get_exchange_rate()
+           quantity = math.floor(exchange_rate * quantity/theo)
+
+        if denomination == "GBP":
+           currency_rate_converter = CurrencyRateConverter(from_currency='GBP',
+                                                        to_currency='USD')
+           exchange_rate = currency_rate_converter.get_exchange_rate()
+           quantity = math.floor(exchange_rate * quantity/theo)
 
         bid_ask_price_spread = BidAskSpreadHandler(ticker).bid_ask_spread
         if bid_ask_price_spread is None:
@@ -65,12 +116,22 @@ class PricingEngine:
         exchange_rate = currency_rate_converter.get_exchange_rate()
         self.bid_price = round(bid_price*exchange_rate,2)
         self.ask_price = round(ask_price*exchange_rate,2)
-      
-        if quote_type in ['RISK','CASH']:
-            print("bid: " + str(self.bid_price) + " ask: "+ str(self.ask_price))
+        
+        if self.quote_type == "RISK":
+            if self.cpty_side == "BUY":
+                self.final_output = f"offer: {self.ask_price}"
+            elif self.cpty_side == "SELL":
+                self.final_output = f"bid: {self.bid_price}"
+            elif self.cpty_side == "TWO_WAY":
+                self.final_output = f"bid: {self.bid_price}, offer {self.ask_price}"
+        else:
+            if self.cpty_side == "BUY":
+                self.final_output = f"offer: +{self.ask_price_skew_bps} bps"
+            elif self.cpty_side == "SELL":
+                self.final_output = f"bid: {self.quote_type} - {self.bid_price_skew_bps} bps"
+            elif self.cpty_side == "TWO_WAY":
+                self.final_output = f"bid: {self.quote_type} - {self.bid_price_skew_bps} bps, offer {self.quote_type} +{self.ask_price_skew_bps} bps"
 
-        if quote_type == "NAV":
-            print("NAV: -"+str(bid_price_skew_bps) + "bps, NAV " + str(ask_price_skew_bps)+"bps")
 
     def calculate_bid_price(self, theo, bid_skew, bid_ask_price_spread):
         bid_price = theo - bid_skew*bid_ask_price_spread
@@ -81,21 +142,26 @@ class PricingEngine:
         return ask_price
 
     def calculate_bid_skew_bps(self,bid_price,theo):
-        self.bid_price_skew_bps = round((theo-bid_price)/theo*CONST_TEN_THOUSAND,2)
+        self.bid_price_skew_bps = round((theo-bid_price)/theo*CONST_TEN_THOUSAND,0)
         return self.bid_price_skew_bps
 
     def calculate_ask_skew_bps(self,ask_price,theo):
-        self.ask_price_skew_bps = round((ask_price-theo)/theo*CONST_TEN_THOUSAND,2)
+        self.ask_price_skew_bps = round((ask_price-theo)/theo*CONST_TEN_THOUSAND,0)
         return self.ask_price_skew_bps
 
-    def get_bid_price(x):
+    def get_bid_price(self):
         return self.bid_price
 
-    def get_ask_price(x):
+    def get_ask_price(self):
         return self.ask_price
 
-    def get_bid_price_skew_bps(x):
+    def get_bid_price_skew_bps(self):
         return self.bid_price_skew_bps
 
-    def get_ask_price_skew_bps(x):
+    def get_ask_price_skew_bps(self):
         return self.ask_price_skew_bps
+
+    def __str__(self):
+        return self.final_output
+
+

@@ -8,8 +8,8 @@
 # hedging costs (add x bps) to spread/configurable 
 # current position 
 
-maximum_bid_skew = 2.5
-maximum_ask_skew = 2.5
+maximum_bid_skew = 4.5
+maximum_ask_skew = 4.5
 neutral_counterparty_multiplier = 1
 toxic_counterparty_multiplier = 1.5
 good_counterparty_multiplier = 0.5
@@ -19,7 +19,7 @@ volatile_market_conditions_multiplier = 2
 very_volatile_market_conditions_multiplier = 2.5 
 low_value_multiplier = 1.2
 medium_value_multiplier = 1
-high_value_multiplier = 0.8
+high_value_multiplier = 5.2
 strong_buy_bid_multiplier = 0.1 
 buy_bid_multiplier = 0.5
 neutral_bid_multiplier = 1

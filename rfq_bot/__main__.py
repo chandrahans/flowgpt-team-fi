@@ -2,9 +2,11 @@ import configparser
 import sys
 from rfq_bot.query import Query, QueryHandler
 
+from pricing_engine.pricing_engine import PricingEngine
 from rfq_bot.message_connectivity.telegram_bot import TelegramBot
 from rfq_bot.message_connectivity.bot_base import BotBase
 from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
+
 
 
 class EchoReceiver:
@@ -18,7 +20,7 @@ class QueryRepeater:
     async def on_message_received(self, bot: BotBase, message, chat_id):
         formatted_query: Query = self.query_handler.parse(message)
         if formatted_query is not None:
-            await bot.send_message(chat_id, str(formatted_query))
+            await bot.send_message(chat_id, str(PricingEngine(formatted_query)))
         else:
             await bot.send_message(chat_id, "Could not understand that request, please try again!")
 

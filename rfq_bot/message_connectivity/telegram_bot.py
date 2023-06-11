@@ -1,15 +1,21 @@
-from telegram.ext import MessageHandler, filters, Application
+from telegram.ext import MessageHandler, filters, Application, CommandHandler
 from rfq_bot.message_connectivity.bot_base import BotBase
 
+WELCOME_MESSAGE = "Hello! Ready to assist with your RFQs"
 
 class TelegramBot(BotBase):
     def __init__(self, config):
         self.application = Application.builder().token(config['TELEGRAM']['api-key']).build()
-        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._receive_message))
+
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.receive_message))
+        self.application.add_handler(CommandHandler("start", self.on_start))
         self.listeners = []
 
     def start(self):
         self.application.run_polling(1.0)
+
+    async def on_start(self, update, context):
+        await self.send_message(update.message.chat_id, WELCOME_MESSAGE)
 
     async def send_message(self, chat_id, text):
         await self.application.bot.send_message(chat_id, text)

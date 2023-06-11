@@ -4,6 +4,7 @@ from query import Query, QueryHandler
 
 from message_connectivity.telegram_bot import TelegramBot
 from message_connectivity.bot_base import BotBase
+from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
 
 
 class EchoReceiver:
@@ -27,6 +28,7 @@ def telegram_echo(config):
     telegram_bot.register_listener(EchoReceiver())
     telegram_bot.start()
 
+
 def telegram_query_repeater(config):
     telegram_bot: BotBase = TelegramBot(config)
     telegram_bot.register_listener(QueryRepeater(config))
@@ -36,6 +38,8 @@ def telegram_query_repeater(config):
 def main() -> None:
     config = configparser.ConfigParser()
     config.read(sys.argv[1])  # read the .ini file path from the first command line argument
+
+    engine = SentimentEngine(config, ['BTCUSD', 'AAPL'])
 
     telegram_query_repeater(config)
 

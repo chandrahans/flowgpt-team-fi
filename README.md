@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 Before you run the RFQ Bot, you will need to set up a configuration file in the following format:
 
-\`\`\`ini
+```ini
 [TELEGRAM]
 api-key = Your-Telegram-API-Key
 
@@ -30,17 +30,17 @@ api-key = Your-OpenAI-API-Key
 
 [OPENAI-4]
 api-key = Your-OpenAI-4-API-Key
-\`\`\`
+```
 
-Please replace \`Your-Telegram-API-Key\`, \`Your-OpenAI-API-Key\` and \`Your-OpenAI-4-API-Key\` with your actual keys. Save this configuration file as \`configuration.ini\`.
+Please replace `Your-Telegram-API-Key`, `Your-OpenAI-API-Key` and `Your-OpenAI-4-API-Key` with your actual keys. Save this configuration file as `configuration.ini`.
 
 ## Running the Bot
 
-Once you have set up your \`configuration.ini\` file, you can run the bot using the following command:
+Once you have set up your `configuration.ini` file, you can run the bot using the following command:
 
-\`\`\`shell
+```shell
 python -m rfq_bot ./configuration.ini
-\`\`\`
+```
 
 ## Contributions
 

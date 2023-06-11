@@ -4,13 +4,13 @@ from market_volatility_monitor import MarketVolatilityMonitor
 from positions_handler import PositionsHandler
 from skew_handler import SkewCalculator
 from theoretical_price_handler import TheoreticalPriceHandler
+from yahoo_ticker_resolver import YahooTickerResolver 
 
 DEFAULT_SPREAD_BPS = 100
 CONST_TEN_THOUSAND = 10000
 
 # RFQ data should come here with ticker, sides, and quantity
 # and quoteType (it can be RISK or NAV)
-# optional field counterparty
 
 one_sided_quote_sides_list = ['buy','sell']
 two_sided_quote_sides_list = ['two_way']
@@ -19,7 +19,9 @@ positions_handler = PositionsHandler()
 class PricingEngine:
 
     def __init__(self,ticker,quantity,side,quote_type,sentiment=1,counterparty='unknown'):
+        ticker = YahooTickerResolver(ticker).retrieve_yahoo_ticker() 
         theo = TheoreticalPriceHandler(ticker).theo_price
+        print(theo)
         if theo is None:
             print(f"Unable to retrieve a theo price for {ticker}.")
             return
@@ -34,6 +36,7 @@ class PricingEngine:
         elif side.lower() in two_sided_quote_sides_list:
             number_of_sides = 2
 
+        ticker = YahooTickerResolver(ticker).retrieve_yahoo_ticker() 
         position_to_ticker_limit_ratio = positions_handler.get_position_limit_ratio(ticker)
         notional_order_value = quantity*theo
         market_volatility_monitor = MarketVolatilityMonitor()

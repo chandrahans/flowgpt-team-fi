@@ -7,7 +7,7 @@ class TelegramBot(BotBase):
     def __init__(self, config):
         self.application = Application.builder().token(config['TELEGRAM']['api-key']).build()
 
-        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.receive_message))
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._receive_message))
         self.application.add_handler(CommandHandler("start", self.on_start))
         self.listeners = []
 

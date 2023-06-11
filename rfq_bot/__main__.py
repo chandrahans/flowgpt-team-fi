@@ -12,10 +12,10 @@ ERROR_MSG = "Could not understand that request, please try again!\n\
 Try for example: '2w 500 BTC', 'I wanna buy 10 ETH', 'Can I have an offer on 10 BTC and 20 ETH' etc."
 
 def get_random_message():
-    return random.choice(["Hold on! I'm pricing it, ", 
-                   "Give me a sec, ", 
-                   "Getting you the best prices, "
-                   "One sec, "])
+    return random.choice(["Hold on! I'm pricing it,", 
+                   "Give me a sec,", 
+                   "Getting you the best prices,"
+                   "One sec,"])
 
 class QueryRepeater:
     def __init__(self, config) -> None:
@@ -27,11 +27,9 @@ class QueryRepeater:
         formatted_query: list = self.query_handler.parse(message)
         if not formatted_query:
             await bot.send_message(chat_id, ERROR_MSG)
+            return
         for listing_query in formatted_query:
-            if formatted_query is not None:
-                await bot.send_message(chat_id, str(PricingEngine(listing_query)))
-            else:
-                await bot.send_message(chat_id, ERROR_MSG)
+            await bot.send_message(chat_id, str(PricingEngine(listing_query)))
 
 
 def main() -> None:

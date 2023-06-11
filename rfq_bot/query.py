@@ -1,15 +1,9 @@
-import asyncio
-import os
 import time
 import openai
 from enum import Enum
 import json
 import configparser
 import sys
-
-API_KEY = os.getenv("OPENAI_API_KEY")
-API_4_KEY = os.getenv("OPENAI_4_API_KEY")
-
 
 class Quote(Enum):
     BID = 1,
@@ -77,7 +71,7 @@ class Query():
         self.price_type = price_type
 
     def __repr__(self) -> str:
-        return f'Instrument: {self.instrument}, Quantity: {self.quantity}, Denomination: {self.denomination} Quote: {self.quote}, PriceType: {self.price_type}'
+        return f'Query(Instrument: {self.instrument}, Quantity: {self.quantity}, Denomination: {self.denomination} Quote: {self.quote}, PriceType: {self.price_type})'
 
 
 class QueryHandler:
@@ -85,7 +79,18 @@ class QueryHandler:
         self.verbose = verbose
         openai.api_key = config['OPENAI-4']['api-key']
 
-    def parse(self, raw_query: str) -> Query:
+    def try_json_extraction(self, response: str):
+        start = response.find('[')
+        end = response.rfind(']') + 1
+        json_string = response[start:end]
+        try:
+            return json.loads(json_string)
+        except Exception as e:
+            if self.verbose:
+                print(f"Exception {e} occured while handling the response: {response}")
+            return None
+
+    def parse(self, raw_query: str) -> list:
         content = f'We received a query from a client intending to make a trade in a financial instrument.\
                 The client might be looking for a Bid, Ask (Offer) or Both for the financial instrument.\
                 Your task is to extract the details of the tarding intention, namely, the financial instrument specified, \
@@ -99,33 +104,46 @@ class QueryHandler:
                 it usually means they are looking for Both Bid and Ask on that instrument.\
                 The denomination for the query is usually the instrument itself, but sometimes the query could \
                 specify a currency as well. Typically, the denomination currencies could be are USD($), EUR(€), GBP(£) etc.\
-                Respond in a strict JSON format with Instrument, Denomination, PriceType, Quantity and Quote as keys,\
+                The client sometimes could also request multiple of these trading intentions in a single query.\
+                Respond in a strict JSON format as a list of dictoinaries, \
+                with Instrument, Denomination, PriceType, Quantity and Quote as keys,\
                 with following constraints on possible values:\n\
+                \t Denomination: USD, EUR, GBP, and Unspecified\n\
                 \t PriceType: NAV, SPOT, TWAP, VWAP and Unspecified\n\
-                \t Quote: Bid, Ask, Both, and Unspecified.\n\
-                \t Denomination: USD, EUR, GBP, and Unspecified'
+                \t Quantity: A numeric value\n\
+                \t Quote: Bid, Ask, Both, and Unspecified.'
 
         messages = [{"role": "user", "content": content}]
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=messages,
-            temperature=0)
+        
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=messages,
+                timeout=10,
+                temperature=0)
+        except Exception as e:
+            print(f"Exception {e} occured while making a completion request to openai: {raw_query}")
 
         if self.verbose:
             print(f'Model response: {response.choices[0].message["content"]}')
-        try:
-            return Query.from_json(json.loads(response.choices[0].message["content"]))
-        except Exception as e:
-            if self.verbose:
-                print(
-                    f"Exception {e} occured while handling the query: {raw_query}")
+
+        json_response = self.try_json_extraction(response.choices[0].message["content"])
+        if json_response is not None:
+            formatted_queries = [Query.from_json(item) for item in json_response]
+            if formatted_queries and None not in formatted_queries:
+                return formatted_queries
             return None
 
+        else:
+            if self.verbose:
+                print(f"Could not handle the query: {raw_query}")
+            return None
 
 def _main():
     raw_querries = [
+        "Hey",
         "2w 500 BTC",
-        "Can I have an offer in 10 BTC",
+        "Can I have an offer on 10 BTC and 20 ETH",
         "Id like to buy 20 BTC",
         "NAV 2w 20 BTCE GY todays NAV settlement t+2",
         "Can i have a 2way in 10,000,000$ BTC",
@@ -138,7 +156,7 @@ def _main():
 
     config = configparser.ConfigParser()
     config.read(sys.argv[1])
-    query_handler = QueryHandler(config)
+    query_handler = QueryHandler(config, True)
 
     for r in raw_querries:
         print(f"Raw query: {r}")

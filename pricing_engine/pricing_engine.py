@@ -15,6 +15,9 @@ CONST_TEN_THOUSAND = 10000
 one_sided_quote_sides_list = ['buy','sell']
 two_sided_quote_sides_list = ['two_way']
 
+one_sided_quote_sides_list = ['buy','sell']
+two_sided_quote_sides_list = ['two_way']
+
 positions_handler = PositionsHandler()
 class PricingEngine:
 
@@ -36,7 +39,6 @@ class PricingEngine:
         elif side.lower() in two_sided_quote_sides_list:
             number_of_sides = 2
 
-        ticker = YahooTickerResolver(ticker).retrieve_yahoo_ticker() 
         position_to_ticker_limit_ratio = positions_handler.get_position_limit_ratio(ticker)
         notional_order_value = quantity*theo
         market_volatility_monitor = MarketVolatilityMonitor()

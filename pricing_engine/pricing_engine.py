@@ -60,7 +60,7 @@ class PricingEngine:
         self.cpty_side = side
         self.quote_type = quote_type
       
-        ticker = YahooTickerResolver(ticker).retrieve_yahoo_ticker() 
+        ticker = YahooTickerResolver(ticker).retrieve_yahoo_ticker()
         theo = TheoreticalPriceHandler(ticker).theo_price
         if theo is None:
             print(f"Unable to retrieve a theo price for {ticker}.")

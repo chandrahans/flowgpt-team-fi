@@ -47,8 +47,8 @@ class YahooSearch(ScrapperBase):
                     if result is not None:
                         average_sentiment += result
                         sentiment_count += 1
-
-                sentiment = average_sentiment / sentiment_count
-                self.sentiment_engine.add_score(ticker, sentiment)
+                if sentiment_count > 0:
+                    sentiment = average_sentiment / sentiment_count
+                    self.sentiment_engine.add_score(ticker, sentiment)
 
             time.sleep(900)

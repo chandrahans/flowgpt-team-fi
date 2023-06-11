@@ -1,9 +1,9 @@
 import configparser
 import sys
-from query import Query, QueryHandler
+from rfq_bot.query import Query, QueryHandler
 
-from message_connectivity.telegram_bot import TelegramBot
-from message_connectivity.bot_base import BotBase
+from rfq_bot.message_connectivity.telegram_bot import TelegramBot
+from rfq_bot.message_connectivity.bot_base import BotBase
 from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
 
 

@@ -5,11 +5,13 @@ from rfq_bot.sentiment_analyser.scrappers.yahoo import Yahoo
 from rfq_bot.sentiment_analyser.scrappers.yahoo_search import YahooSearch
 
 
+DEFAULT_SENTIMENT = 5
+
 class SentimentEngine:
     def __init__(self, config, ticker_list, verbose=False):
         self.verbose = verbose
         self.score_lock = threading.Lock()
-        self.ticker_scores = {ticker: 5 for ticker in ticker_list}
+        self.ticker_scores = {ticker: DEFAULT_SENTIMENT for ticker in ticker_list}
 
         self.scrappers = [
             # Yahoo(config, self),

@@ -6,8 +6,7 @@ RFQ Bot Alpha is a Telegram bot built using OpenAI's ChatGPT-4. The bot is desig
 
 - Python 3.7 and above
 - An API Key for Telegram
-- An API Key for OpenAI (for accessing ChatGPT)
-- An API Key for OpenAI-4 
+- An API Key for OpenAI with access to GPT-4 
 
 ## Installation
 

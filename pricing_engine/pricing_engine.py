@@ -8,9 +8,6 @@ from pricing_engine.skew_handler import SkewCalculator
 from pricing_engine.theoretical_price_handler import TheoreticalPriceHandler
 from pricing_engine.yahoo_ticker_resolver import YahooTickerResolver 
 from rfq_bot.query import Query, Quote, Denomination, PriceType
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
 
 DEFAULT_SPREAD_BPS = 100
 CONST_TEN_THOUSAND = 10000

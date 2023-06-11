@@ -1,4 +1,4 @@
-from telegram.ext import MessageHandler, filters, Application, CommandHandler, Updater
+from telegram.ext import MessageHandler, filters, Application, CommandHandler
 from rfq_bot.message_connectivity.bot_base import BotBase
 
 WELCOME_MESSAGE = "Hello! Ready to assist with your RFQs"

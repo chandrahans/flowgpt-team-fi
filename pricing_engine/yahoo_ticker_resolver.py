@@ -6,6 +6,7 @@ import pandas as pd
 
 ticker_folder_name = "yahoo_ticker_mapping"
 ticker_file_name = "ticker_mapping.txt"
+base_currency = "USD" 
 path_of_mapping = os.path.join(*[os.getcwd(),
 				ticker_folder_name,
 				ticker_file_name])
@@ -15,7 +16,7 @@ ticker_df['yahoo_ticker'] = ticker_df['yahoo_ticker'].apply(lambda x:x.strip())
 
 currency_mapping_list = []
 for index,row in ticker_df.iterrows():
-    if "/" in row['name'] and "USD" in row['name']:
+    if "/" in row['name'] and base_currency in row['name']:
         to_currency = row['name'].split("/")[1]
         currency_mapping_list.append([to_currency,row['yahoo_ticker']])
 

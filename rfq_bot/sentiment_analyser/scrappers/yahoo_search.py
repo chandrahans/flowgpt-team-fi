@@ -12,6 +12,7 @@ from rfq_bot.sentiment_analyser.analysers.sentiment import SentimentAnalyser
 
 class YahooSearch(ScrapperBase):
     def __init__(self, config, sentiment_engine, ticker_list):
+        self.verbose = True if config['COMMON']['verbose'] == "True" else False
         ScrapperBase.__init__(self, config, sentiment_engine)
         self.analyser = SentimentAnalyser(config)
         self.ticker_list = ticker_list
@@ -40,15 +41,15 @@ class YahooSearch(ScrapperBase):
                 sentiment_count = 0
                 for card in cards:
                     article = self._get_article(card)
-                    print(article)
+                    self.verbose and print(article)
 
                     result = self.analyser.analyse_text(article)
-                    print(result)
+                    self.verbose and print(result)
                     if result is not None:
                         average_sentiment += result
                         sentiment_count += 1
-
-                sentiment = average_sentiment / sentiment_count
-                self.sentiment_engine.add_score(ticker, sentiment)
+                if sentiment_count > 0:
+                    sentiment = average_sentiment / sentiment_count
+                    self.sentiment_engine.add_score(ticker, sentiment)
 
             time.sleep(900)

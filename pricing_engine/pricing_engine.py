@@ -64,6 +64,7 @@ class PricingEngine:
         theo = TheoreticalPriceHandler(ticker).theo_price
         if theo is None:
             print(f"Unable to retrieve a theo price for {ticker}.")
+            self.final_output = f"We don't quote {ticker} unfortunately :(."
             return
         if denomination == "USD":
            quantity = math.floor(quantity/theo)
@@ -131,7 +132,6 @@ class PricingEngine:
                 self.final_output = f"bid: {self.quote_type} - {self.bid_price_skew_bps} bps"
             elif self.cpty_side == "TWO_WAY":
                 self.final_output = f"bid: {self.quote_type} - {self.bid_price_skew_bps} bps, offer {self.quote_type} +{self.ask_price_skew_bps} bps"
-
 
     def calculate_bid_price(self, theo, bid_skew, bid_ask_price_spread):
         bid_price = theo - bid_skew*bid_ask_price_spread

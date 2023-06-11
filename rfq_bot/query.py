@@ -9,7 +9,6 @@ class Quote(Enum):
     BID = 1,
     ASK = 2,
     BOTH = 3,
-    SWAP = 4
 
 
 class Denomination(Enum):
@@ -75,8 +74,8 @@ class Query():
 
 
 class QueryHandler:
-    def __init__(self, config, verbose: bool = False) -> None:
-        self.verbose = verbose
+    def __init__(self, config) -> None:
+        self.verbose = True if config['COMMON']['verbose'] == "True" else False
         openai.api_key = config['OPENAI-4']['api-key']
 
     def try_json_extraction(self, response: str):
@@ -86,8 +85,7 @@ class QueryHandler:
         try:
             return json.loads(json_string)
         except Exception as e:
-            if self.verbose:
-                print(f"Exception {e} occured while handling the response: {response}")
+            self.verbose and print(f"Exception {e} occured while handling the response: {response}")
             return None
 
     def parse(self, raw_query: str) -> list:
@@ -124,8 +122,7 @@ class QueryHandler:
         except Exception as e:
             print(f"Exception {e} occured while making a completion request to openai: {raw_query}")
 
-        if self.verbose:
-            print(f'Model response: {response.choices[0].message["content"]}')
+        self.verbose and print(f'Model response: {response.choices[0].message["content"]}')
 
         json_response = self.try_json_extraction(response.choices[0].message["content"])
         if json_response is not None:
@@ -135,8 +132,7 @@ class QueryHandler:
             return None
 
         else:
-            if self.verbose:
-                print(f"Could not handle the query: {raw_query}")
+            self.verbose and print(f"Could not handle the query: {raw_query}")
             return None
 
 def _main():
@@ -156,7 +152,7 @@ def _main():
 
     config = configparser.ConfigParser()
     config.read(sys.argv[1])
-    query_handler = QueryHandler(config, True)
+    query_handler = QueryHandler(config, verbose=True)
 
     for r in raw_querries:
         print(f"Raw query: {r}")

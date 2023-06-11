@@ -51,4 +51,4 @@ class YahooSearch(ScrapperBase):
                 sentiment = average_sentiment / sentiment_count
                 self.sentiment_engine.add_score(ticker, sentiment)
 
-            time.sleep(90)
+            time.sleep(900)

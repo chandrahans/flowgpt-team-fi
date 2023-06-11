@@ -1,7 +1,9 @@
 import configparser
+import random
 import sys
 from rfq_bot.query import Query, QueryHandler
 
+from pricing_engine.pricing_engine import PricingEngine
 from rfq_bot.message_connectivity.telegram_bot import TelegramBot
 from rfq_bot.message_connectivity.bot_base import BotBase
 from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
@@ -9,17 +11,25 @@ from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
 ERROR_MSG = "Could not understand that request, please try again!\n\
 Try for example: '2w 500 BTC', 'I wanna buy 10 ETH', 'Can I have an offer on 10 BTC and 20 ETH' etc."
 
+def get_random_message():
+    return random.choice(["Hold on! I'm pricing it,", 
+                   "Give me a sec,", 
+                   "Getting you the best prices,",
+                   "One sec,"])
+
 class QueryRepeater:
     def __init__(self, config) -> None:
         self.verbose = True if config['COMMON']['verbose'] == "True" else False
         self.query_handler = QueryHandler(config)
 
     async def on_message_received(self, bot: BotBase, message, chat_id, first_name):
+        await bot.send_message(chat_id, get_random_message() + f" {first_name}!")
         formatted_query: list = self.query_handler.parse(message)
-        if formatted_query is not None:
-            await bot.send_message(chat_id, str(formatted_query))
-        else:
+        if not formatted_query:
             await bot.send_message(chat_id, ERROR_MSG)
+            return
+        for listing_query in formatted_query:
+            await bot.send_message(chat_id, str(PricingEngine(listing_query)))
 
 
 def main() -> None:

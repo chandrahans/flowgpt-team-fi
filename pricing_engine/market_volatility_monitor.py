@@ -4,7 +4,7 @@ class MarketVolatilityMonitor:
     
     def __init__(self):
         self.volatility_index_str = "^VIX" 
-        self.default_vix_level= 17
+        self.default_vix_level = 17
    
     def get_vix_level(self):
         try:

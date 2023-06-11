@@ -8,7 +8,7 @@ from rfq_bot.message_connectivity.telegram_bot import TelegramBot
 from rfq_bot.message_connectivity.bot_base import BotBase
 from rfq_bot.sentiment_analyser.sentiment_engine import SentimentEngine
 
-ERROR_MSG = "Could not understand that request, please try again!\n\
+ERROR_MSG = "Could not understand that request, maybe you missed the quantity? Please try again!\n\
 Try for example: '2w 500 BTC', 'I wanna buy 10 ETH', 'Can I have an offer on 10 BTC and 20 ETH' etc."
 
 def get_random_message():

@@ -8,12 +8,10 @@ from theoretical_price_handler import TheoreticalPriceHandler
 DEFAULT_SPREAD_BPS = 100
 CONST_TEN_THOUSAND = 10000
 
-maximum_bid_skew = 2.5
-maximum_ask_skew = 2.5
-
 # RFQ data should come here with ticker, sides, and quantity
 # and quoteType (it can be RISK or NAV)
 # optional field counterparty
+
 one_sided_quote_sides_list = ['buy','sell']
 two_sided_quote_sides_list = ['two_way']
 
@@ -54,8 +52,8 @@ class PricingEngine:
         bid_price = self.calculate_bid_price(theo,bid_skew,bid_ask_price_spread)
         ask_price = self.calculate_ask_price(theo,ask_skew,bid_ask_price_spread)
 
-        bid_price_skew_bps = self.calculate_bid_skew_bps(bid_price,theo)
-        ask_price_skew_bps = self.calculate_ask_skew_bps(ask_price,theo)
+        self.bid_price_skew_bps = self.calculate_bid_skew_bps(bid_price,theo)
+        self.ask_price_skew_bps = self.calculate_ask_skew_bps(ask_price,theo)
 
         currency_rate_converter = CurrencyRateConverter(from_currency='USD',
                                                         to_currency='EUR')
@@ -78,12 +76,12 @@ class PricingEngine:
         return ask_price
 
     def calculate_bid_skew_bps(self,bid_price,theo):
-        bid_price_skew_bps = round((theo-bid_price)/theo*CONST_TEN_THOUSAND,2)
-        return bid_price_skew_bps
+        self.bid_price_skew_bps = round((theo-bid_price)/theo*CONST_TEN_THOUSAND,2)
+        return self.bid_price_skew_bps
 
     def calculate_ask_skew_bps(self,ask_price,theo):
-        ask_price_skew_bps = round((ask_price-theo)/theo*CONST_TEN_THOUSAND,2)
-        return ask_price_skew_bps
+        self.ask_price_skew_bps = round((ask_price-theo)/theo*CONST_TEN_THOUSAND,2)
+        return self.ask_price_skew_bps
 
     def get_bid_price(x):
         return self.bid_price
@@ -91,3 +89,8 @@ class PricingEngine:
     def get_ask_price(x):
         return self.ask_price
 
+    def get_bid_price_skew_bps(x):
+        return self.bid_price_skew_bps
+
+    def get_ask_price_skew_bps(x):
+        return self.ask_price_skew_bps

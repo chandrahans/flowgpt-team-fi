@@ -1,16 +1,13 @@
-# Responsible for calculating the skew.
+# Responsible for calculating the price skew.
+# The following factors are used in skewing:
+# counterparty: "good", "neutral", "toxic"  
+# current market_conditions  ("Very Calm","Calm","Volatile","Extremely Volatile") 
+# notional value of the RFQ
+# current market volatility
+# sentiment related to instrument
+# hedging costs (add x bps) to spread/configurable 
+# current position 
 
-# skew between mid_price and market_conditions_multiplier*positions_multiplier*bid_ask_spread_in_bps
-# This class comes up with a skew on the bid and ask
-
-# the following factors should be used in skewing:
-# counterparty: "good", "neutral", "toxic"  V
-# current market_conditions = ("Very Calm","Calm","Volatile","Extremely Volatile") V
-# size of the RFQ V
-# current volatility/sentiment of instrument
-# hedging costs (add x bps) to spread/configurable V
-# current position
-# output one skew for buy, one skew for sell
 maximum_bid_skew = 2.5
 maximum_ask_skew = 2.5
 neutral_counterparty_multiplier = 1
@@ -75,6 +72,7 @@ class SkewCalculator:
         self.bid_skew = min(maximum_bid_skew,self.bid_skew)
         self.ask_skew = self.two_sided_multiplier*self.sentiment_multiplier[1]*self.position_multiplier[1]
         self.ask_skew = min(maximum_ask_skew,self.ask_skew)
+        self.ask_skew = self.two_sided_multiplier*self.sentiment_multiplier[1]*self.position_multiplier[1]
 
     def get_bid_skew(self):
         return self.bid_skew

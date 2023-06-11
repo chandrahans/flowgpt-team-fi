@@ -121,6 +121,7 @@ class QueryHandler:
                 temperature=0)
         except Exception as e:
             print(f"Exception {e} occured while making a completion request to openai: {raw_query}")
+            return None
 
         self.verbose and print(f'Model response: {response.choices[0].message["content"]}')
 
